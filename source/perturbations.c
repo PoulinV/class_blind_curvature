@@ -9218,11 +9218,19 @@ int perturbations_derivs(double tau,
     if (pba->has_cdm == _TRUE_) {
 
       /** - ----> newtonian gauge: cdm density and velocity */
+      // printf("here!\n");
+      // printf("ppt->DMDE_interaction %e, ppw->pvecback[pba->index_bg_rho_fld] %e \n", ppt->DMDE_interaction,ppw->pvecback[pba->index_bg_rho_fld]);
 
       if (ppt->gauge == newtonian) {
-        dy[pv->index_pt_delta_cdm] = -(y[pv->index_pt_theta_cdm]+metric_continuity); /* cdm density */
+        // printf("in cdm ppt->DMDE_interaction %e ppw->pvecback[pba->index_bg_rho_fld] %e\n", ppt->DMDE_interaction);
 
-        dy[pv->index_pt_theta_cdm] = - a_prime_over_a*y[pv->index_pt_theta_cdm] + metric_euler; /* cdm velocity */
+
+        dy[pv->index_pt_delta_cdm] = -(y[pv->index_pt_theta_cdm]+metric_continuity); /* cdm density */
+        // dy[pv->index_pt_theta_cdm] = - a_prime_over_a*y[pv->index_pt_theta_cdm] + metric_euler; /* cdm velocity */
+        dy[pv->index_pt_theta_cdm] = - a_prime_over_a*y[pv->index_pt_theta_cdm] + metric_euler
+         + ppt->DMDE_interaction*ppw->pvecback[pba->index_bg_rho_fld]/(ppw->pvecback[pba->index_bg_rho_cdm]+ppw->pvecback[pba->index_bg_rho_b]+ppw->pvecback[pba->index_bg_rho_fld])*(y[pv->index_pt_theta_fld]-y[pv->index_pt_theta_cdm]); /* cdm velocity */
+        // dy[pv->index_pt_theta_cdm] = - a_prime_over_a*y[pv->index_pt_theta_cdm] + metric_euler + ppt->DMDE_interaction*ppw->pvecback[pba->index_bg_rho_fld]/(ppw->pvecback[pba->index_bg_rho_cdm]+ppw->pvecback[pba->index_bg_rho_b]+ppw->pvecback[pba->index_bg_rho_fld])*(y[pv->index_pt_theta_fld]-y[pv->index_pt_theta_cdm]); /* cdm velocity */
+        // printf("%e\n",pvecback[pba->index_bg_rho_crit]);
       }
 
       /** - ----> synchronous gauge: cdm density only (velocity set to zero by definition of the gauge) */
@@ -9355,7 +9363,7 @@ int perturbations_derivs(double tau,
     /** - ---> fluid (fld) */
 
     if (pba->has_fld == _TRUE_) {
-
+      // printf("here!!!\n");
       if (pba->use_ppf == _FALSE_){
 
         /** - ----> factors w, w_prime, adiabatic sound speed ca2 (all three background-related),
@@ -9375,11 +9383,21 @@ int perturbations_derivs(double tau,
           -9.*(1+w_fld)*(cs2-ca2)*a_prime_over_a*a_prime_over_a*y[pv->index_pt_theta_fld]/k2;
 
         /** - ----> fluid velocity */
+        // printf("in fld ppt->DMDE_interaction %e ppw->pvecback[pba->index_bg_rho_fld] %e\n", ppt->DMDE_interaction);
 
         dy[pv->index_pt_theta_fld] = /* fluid velocity */
           -(1.-3.*cs2)*a_prime_over_a*y[pv->index_pt_theta_fld]
           +cs2*k2/(1.+w_fld)*y[pv->index_pt_delta_fld]
+          -ppt->DMDE_interaction*ppw->pvecback[pba->index_bg_rho_fld]/(ppw->pvecback[pba->index_bg_rho_cdm]+ppw->pvecback[pba->index_bg_rho_b]+ppw->pvecback[pba->index_bg_rho_fld])*(y[pv->index_pt_theta_fld]-y[pv->index_pt_theta_cdm]) /* cdm velocity */
+
+
+          // -ppt->DMDE_interaction*ppw->pvecback[pba->index_bg_rho_fld]/(ppw->pvecback[pba->index_bg_rho_cdm]+ppw->pvecback[pba->index_bg_rho_b]+ppw->pvecback[pba->index_bg_rho_fld])*(y[pv->index_pt_theta_fld]-y[pv->index_pt_theta_cdm])
+          // +cs2*k2/(1.+w_fld)*y[pv->index_pt_delta_fld]
           +metric_euler;
+
+          // printf(" 1+z %e %e\n",1/a,ppw->pvecback[pba->index_bg_rho_fld]/pvecback[pba->index_bg_rho_crit]);
+
+
       }
       else {
         dy[pv->index_pt_Gamma_fld] = ppw->Gamma_prime_fld; /* Gamma variable of PPF formalism */

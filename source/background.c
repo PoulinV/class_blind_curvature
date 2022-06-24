@@ -605,11 +605,13 @@ int background_functions(
   /** - compute relativistic density to total density ratio */
   pvecback[pba->index_bg_Omega_r] = rho_r / rho_crit;
 
+
+      /** - store critical density */
+      pvecback[pba->index_bg_rho_crit] = rho_crit;
+
+// printf("[pba->index_bg_rho_crit %e\n", pvecback[pba->index_bg_rho_crit]);
   /** - compute other quantities in the exhaustive, redundant format */
   if (return_format == long_info) {
-
-    /** - store critical density */
-    pvecback[pba->index_bg_rho_crit] = rho_crit;
 
     /** - compute Omega_m */
     pvecback[pba->index_bg_Omega_m] = rho_m / rho_crit;

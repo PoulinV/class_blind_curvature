@@ -2810,6 +2810,10 @@ int input_read_parameters_species(struct file_content * pfc,
 
   /** 7.2.2) Dark Matter interacting with Dark Radiation, ETHOS-parametrization/NADM parametrization, see explanatory.ini */
 
+  class_read_double("DMDE_interaction",ppt->DMDE_interaction);
+  printf("ppt->DMDE_interaction %e\n", ppt->DMDE_interaction);
+
+
   /** 7.2.2.a) Amount of idr  */
   /* Read */
   class_call(parser_read_double(pfc,"N_idr",&param1,&flag1,errmsg),
@@ -3188,6 +3192,8 @@ int input_read_parameters_species(struct file_content * pfc,
     }
   }
   else if (flag2 == _FALSE_) {
+    // printf("pba->Omega0_fld %e\n", pba->Omega0_fld);
+
     /* Fill up with fluid */
     pba->Omega0_fld = 1. - pba->Omega0_k - Omega_tot;
     if (input_verbose > 0){
@@ -3220,6 +3226,7 @@ int input_read_parameters_species(struct file_content * pfc,
         pba->use_ppf = _FALSE_;
       }
     }
+
 
     /** 8.a.2) Equation of state */
     /* Read */
@@ -5749,6 +5756,7 @@ int input_default_params(struct background *pba,
   /** 7.2.2.g, 7.2.2.h)  angular coefficients */
   ppt->alpha_idm_dr = NULL;
   ppt->beta_idr = NULL;
+  ppt->DMDE_interaction = 0;
   /** 7.2.3.a) idm_b coupling */
   pth->cross_idm_b = 0.;
   /** 7.2.3.b) temperature scaling idm_b */
