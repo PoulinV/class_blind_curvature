@@ -2811,7 +2811,8 @@ int input_read_parameters_species(struct file_content * pfc,
   /** 7.2.2) Dark Matter interacting with Dark Radiation, ETHOS-parametrization/NADM parametrization, see explanatory.ini */
 
   class_read_double("DMDE_interaction",ppt->DMDE_interaction);
-  printf("ppt->DMDE_interaction %e\n", ppt->DMDE_interaction);
+  class_read_double("DMDE_interaction_pow",ppt->DMDE_interaction_pow);
+//  printf("ppt->DMDE_interaction %e\n", ppt->DMDE_interaction);
 
 
   /** 7.2.2.a) Amount of idr  */
@@ -5757,6 +5758,7 @@ int input_default_params(struct background *pba,
   ppt->alpha_idm_dr = NULL;
   ppt->beta_idr = NULL;
   ppt->DMDE_interaction = 0;
+  ppt->DMDE_interaction_pow = 1;
   /** 7.2.3.a) idm_b coupling */
   pth->cross_idm_b = 0.;
   /** 7.2.3.b) temperature scaling idm_b */
