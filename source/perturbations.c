@@ -8779,7 +8779,7 @@ int perturbations_derivs(double tau,
   /* for use with non-cold dark matter (ncdm): */
   int index_q,n_ncdm,idx;
   double q,epsilon,dlnf0_dlnq,qk_div_epsilon;
-  double rho_ncdm_bg,p_ncdm_bg,pseudo_p_ncdm,w_ncdm,ca2_ncdm,ceff2_ncdm=0.,cvis2_ncdm=0.;
+  double rho_ncdm_bg,p_ncdm_bg,pseudo_p_ncdm,w_ncdm,ca2_ncdm,ceff2_ncdm=0.,cvis2_ncdm=0.,rho_ncdm_bg_tot;
 
   /* for use with curvature */
   double cotKgen, sqrt_absK;
@@ -8875,7 +8875,13 @@ int perturbations_derivs(double tau,
       S_idm_b = pvecback[pba->index_bg_rho_idm]/pvecback[pba->index_bg_rho_b];
     }
   }
-
+  /* quick test for DMDE interaction*/
+  if(ppt->DMDE_interaction>0 && pba->has_ncdm == _TRUE_){
+    rho_ncdm_bg_tot=0;
+    for (n_ncdm=0; n_ncdm<pv->N_ncdm; n_ncdm++) {
+    rho_ncdm_bg_tot += pvecback[pba->index_bg_rho_ncdm1+n_ncdm]; /* background density */
+    }
+  }
   /** - Compute 'generalised cotK function of argument \f$ \sqrt{|K|}*\tau \f$, for closing hierarchy.
       (see equation 2.34 in arXiv:1305.3261): */
   if (pba->has_curvature == _FALSE_){
@@ -9228,7 +9234,7 @@ int perturbations_derivs(double tau,
         dy[pv->index_pt_delta_cdm] = -(y[pv->index_pt_theta_cdm]+metric_continuity); /* cdm density */
         // dy[pv->index_pt_theta_cdm] = - a_prime_over_a*y[pv->index_pt_theta_cdm] + metric_euler; /* cdm velocity */
         dy[pv->index_pt_theta_cdm] = - a_prime_over_a*y[pv->index_pt_theta_cdm] + metric_euler
-         + ppt->DMDE_interaction*pow(ppw->pvecback[pba->index_bg_rho_fld]/(ppw->pvecback[pba->index_bg_rho_cdm]+ppw->pvecback[pba->index_bg_rho_b]+ppw->pvecback[pba->index_bg_rho_fld]),ppt->DMDE_interaction_pow)*(y[pv->index_pt_theta_fld]-y[pv->index_pt_theta_cdm]); /* cdm velocity */
+         + ppt->DMDE_interaction*pow(ppw->pvecback[pba->index_bg_rho_fld]/(ppw->pvecback[pba->index_bg_rho_cdm]+ppw->pvecback[pba->index_bg_rho_b]+rho_ncdm_bg_tot+rho_ncdm_bg_tot+ppw->pvecback[pba->index_bg_rho_fld]),ppt->DMDE_interaction_pow)*(y[pv->index_pt_theta_fld]-y[pv->index_pt_theta_cdm]); /* cdm velocity */
         // dy[pv->index_pt_theta_cdm] = - a_prime_over_a*y[pv->index_pt_theta_cdm] + metric_euler + ppt->DMDE_interaction*ppw->pvecback[pba->index_bg_rho_fld]/(ppw->pvecback[pba->index_bg_rho_cdm]+ppw->pvecback[pba->index_bg_rho_b]+ppw->pvecback[pba->index_bg_rho_fld])*(y[pv->index_pt_theta_fld]-y[pv->index_pt_theta_cdm]); /* cdm velocity */
         // printf("%e\n",pvecback[pba->index_bg_rho_crit]);
       }
@@ -9364,6 +9370,7 @@ int perturbations_derivs(double tau,
 
     if (pba->has_fld == _TRUE_) {
       // printf("here!!!\n");
+
       if (pba->use_ppf == _FALSE_){
 
         /** - ----> factors w, w_prime, adiabatic sound speed ca2 (all three background-related),
