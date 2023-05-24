@@ -294,6 +294,7 @@ struct background
   short has_ur;        /**< presence of ultra-relativistic neutrinos/relics? */
   short has_idr;       /**< presence of interacting dark radiation? */
   short has_curvature; /**< presence of global spatial curvature? */
+  short blind_curvature; /**<  Are we blind to the curvature in the expansion rate? */
   short has_varconst;  /**< presence of varying fundamental constants? */
 
   //@}

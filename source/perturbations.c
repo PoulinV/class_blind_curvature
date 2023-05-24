@@ -6602,9 +6602,11 @@ int perturbations_einstein(
          second equation below (credits to Guido Walter Pettinari). */
 
       /* equation for psi */
+      //here include C
       ppw->pvecmetric[ppw->index_mt_psi] = y[ppw->pv->index_pt_phi] - 4.5 * (a2/k2) * ppw->rho_plus_p_shear;
 
       /* equation for phi' */
+      //here include C'
       ppw->pvecmetric[ppw->index_mt_phi_prime] = -a_prime_over_a * ppw->pvecmetric[ppw->index_mt_psi] + 1.5 * (a2/k2) * ppw->rho_plus_p_theta;
 
       /* eventually, infer radiation streaming approximation for
@@ -9430,6 +9432,19 @@ int perturbations_derivs(double tau,
         - (k2 + a2*pvecback[pba->index_bg_ddV_scf])*y[pv->index_pt_phi_scf]; //checked
 
     }
+    /** - ---> scalar field (scf) */
+
+    // if (pba->has_blind_curvature == _TRUE_) {
+    //   //with blind_curvature
+    //   /** - ----> field value */
+    //
+    //   dy[pv->index_pt_C] = y[pv->index_pt_C_prime];
+    //
+    //   /** - ----> Klein Gordon equation */
+    //
+    //   dy[pv->index_pt_C_prime_scf] =  - 2 * a_prime_over_a * y[pv->index_pt_C_prime] - k2 * pba //; //checked
+    //
+    // }
 
     /** - ---> ultra-relativistic neutrino/relics (ur) */
 

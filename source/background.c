@@ -576,10 +576,22 @@ int background_functions(
       only place where the Friedmann equation is assumed. Remember
       that densities are all expressed in units of \f$ [3c^2/8\pi G] \f$, ie
       \f$ \rho_{class} = [8 \pi G \rho_{physical} / 3 c^2]\f$ */
-  pvecback[pba->index_bg_H] = sqrt(rho_tot-pba->K/a/a);
+      if(pba->blind_curvature==_TRUE_){
+        //VP remove curvature from expansion
+  pvecback[pba->index_bg_H] = sqrt(rho_tot);
 
+    }else{
+
+      pvecback[pba->index_bg_H] = sqrt(rho_tot-pba->K/a/a);
+}
   /** - compute derivative of H with respect to conformal time */
-  pvecback[pba->index_bg_H_prime] = - (3./2.) * (rho_tot + p_tot) * a + pba->K/a;
+  if(pba->blind_curvature==_TRUE_){
+    //VP remove curvature from expansion
+    pvecback[pba->index_bg_H_prime] = - (3./2.) * (rho_tot + p_tot) * a;
+
+  }else{
+    pvecback[pba->index_bg_H_prime] = - (3./2.) * (rho_tot + p_tot) * a + pba->K/a;
+  }
 
   /* Total energy density*/
   pvecback[pba->index_bg_rho_tot] = rho_tot;
@@ -597,7 +609,13 @@ int background_functions(
   }
 
   /** - compute critical density */
+  if(pba->blind_curvature==_TRUE_){
+    //VP remove curvature from expansion
+      rho_crit = rho_tot;
+    }
+  else{
   rho_crit = rho_tot-pba->K/a/a;
+  }
   class_test(rho_crit <= 0.,
              pba->error_message,
              "rho_crit = %e instead of strictly positive",rho_crit);
@@ -2795,7 +2813,7 @@ int background_output_budget(
     printf(" ---------------------------- Budget equation ----------------------- \n");
 
     printf(" ---> Nonrelativistic Species \n");
-    class_print_species("Bayrons",b);
+    class_print_species("Baryons",b);
     budget_matter+=pba->Omega0_b;
     if (pba->has_cdm == _TRUE_) {
       class_print_species("Cold Dark Matter",cdm);
