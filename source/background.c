@@ -572,23 +572,22 @@ int background_functions(
     rho_r += pvecback[pba->index_bg_rho_idr];
   }
 
-  /** - compute expansion rate H from Friedmann equation: this is the
-      only place where the Friedmann equation is assumed. Remember
-      that densities are all expressed in units of \f$ [3c^2/8\pi G] \f$, ie
-      \f$ \rho_{class} = [8 \pi G \rho_{physical} / 3 c^2]\f$ */
-      if(pba->blind_curvature==_TRUE_){
+  /* - compute expansion rate H from Friedmann equation: this is the
+	only place where the Friedmann equation is assumed. Remember
+	that densities are all expressed in units of \f$ [3c^2/8\pi G] \f$, ie
+	\f$ \rho_{class} = [8 \pi G \rho_{physical} / 3 c^2]\f$ */
+	
+  if(pba->has_blind_curvature==_TRUE_){
         //VP remove curvature from expansion
-  pvecback[pba->index_bg_H] = sqrt(rho_tot);
-
-    }else{
-
-      pvecback[pba->index_bg_H] = sqrt(rho_tot-pba->K/a/a);
-}
-  /** - compute derivative of H with respect to conformal time */
-  if(pba->blind_curvature==_TRUE_){
+  		pvecback[pba->index_bg_H] = sqrt(rho_tot);
+  }else{
+		pvecback[pba->index_bg_H] = sqrt(rho_tot-pba->K/a/a);
+  }
+  
+  /* - compute derivative of H with respect to conformal time */
+  if(pba->has_blind_curvature==_TRUE_){
     //VP remove curvature from expansion
-    pvecback[pba->index_bg_H_prime] = - (3./2.) * (rho_tot + p_tot) * a;
-
+  pvecback[pba->index_bg_H_prime] = - (3./2.) * (rho_tot + p_tot) * a;
   }else{
     pvecback[pba->index_bg_H_prime] = - (3./2.) * (rho_tot + p_tot) * a + pba->K/a;
   }
@@ -609,7 +608,7 @@ int background_functions(
   }
 
   /** - compute critical density */
-  if(pba->blind_curvature==_TRUE_){
+  if(pba->has_blind_curvature==_TRUE_){
     //VP remove curvature from expansion
       rho_crit = rho_tot;
     }

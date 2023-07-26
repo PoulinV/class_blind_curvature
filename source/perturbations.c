@@ -4040,6 +4040,11 @@ int perturbations_vector_init(
 
     class_define_index(ppv->index_pt_phi_scf,pba->has_scf,index_pt,1); /* scalar field density */
     class_define_index(ppv->index_pt_phi_prime_scf,pba->has_scf,index_pt,1); /* scalar field velocity */
+    
+	/* scalar field from reference curvature (blind) */
+
+	class_define_index(ppv->index_pt_blind_C,pba->has_blind_curvature,index_pt,1); /* scalar field density */
+	   class_define_index(ppv->index_pt_blind_C_prime,pba->has_blind_curvature,index_pt,1); /* scalar field velocity */
 
     /* perturbed recombination: the indices are defined once tca is off. */
     if ( (ppt->has_perturbed_recombination == _TRUE_) && (ppw->approx[ppw->index_ap_tca] == (int)tca_off) ){
@@ -4512,6 +4517,15 @@ int perturbations_vector_init(
 
         ppv->y[ppv->index_pt_phi_prime_scf] =
           ppw->pv->y[ppw->pv->index_pt_phi_prime_scf];
+      }
+      
+      if (pba->has_blind_curvature == _TRUE_) {
+
+        ppv->y[ppv->index_pt_blind_C] =
+          ppw->pv->y[ppw->pv->index_pt_blind_C];
+
+        ppv->y[ppv->index_pt_blind_C_prime] =
+          ppw->pv->y[ppw->pv->index_pt_blind_C_prime];
       }
 
       if (ppt->gauge == synchronous)
@@ -5575,6 +5589,15 @@ int perturbations_initial_conditions(struct precision * ppr,
         /* delta_fld expression * rho_scf with the w = 1/3, c_s = 1
            a*a/ppw->pvecback[pba->index_bg_phi_prime_scf]*( - ktau_two/4.*(1.+1./3.)*(4.-3.*1.)/(4.-6.*(1/3.)+3.*1.)*ppw->pvecback[pba->index_bg_rho_scf] - ppw->pvecback[pba->index_bg_dV_scf]*ppw->pv->y[ppw->pv->index_pt_phi_scf])* ppr->curvature_ini * s2_squared; */
       }
+      
+      if (pba->has_blind_curvature == _TRUE_) {
+        /*  As a first test, initial conditions are taken to be zero for C, which is sourced by the total shear.
+         */
+
+        ppw->pv->y[ppw->pv->index_pt_blind_C] = 0.;
+        ppw->pv->y[ppw->pv->index_pt_blind_C_prime] = 0.;
+	
+      }
 
       /* all relativistic relics: ur, early ncdm, dr */
 
@@ -5848,6 +5871,15 @@ int perturbations_initial_conditions(struct precision * ppr,
            -a*a* dV_scf(pba,ppw->pvecback[pba->index_bg_phi_scf])*alpha
            +ppw->pvecback[pba->index_bg_phi_prime_scf]*alpha_prime);
       }
+      
+      /* scalar field blind curvature: check */
+      // Is there something to do here ???
+      if (pba->has_blind_curvature == _TRUE_) {
+        
+      }
+      
+      
+      
 
       if ((pba->has_ur == _TRUE_) || (pba->has_ncdm == _TRUE_) || (pba->has_dr == _TRUE_)  || (pba->has_idr == _TRUE_)) {
 
@@ -6597,18 +6629,19 @@ int perturbations_einstein(
          with s2_squared = sqrt(1-3K/k2) = ppw->s_l[2]*ppw->s_l[2]
 
          This was the case in class v1.3. However the integration is
-         more stable is we treat phi as a dynamical variable
+         more stable if we treat phi as a dynamical variable
          y[ppw->pv->index_pt_phi], which derivative is given by the
          second equation below (credits to Guido Walter Pettinari). */
 
       /* equation for psi */
-      //here include C
-      ppw->pvecmetric[ppw->index_mt_psi] = y[ppw->pv->index_pt_phi] - 4.5 * (a2/k2) * ppw->rho_plus_p_shear;
-
+      // With C from blind curvature
+      ppw->pvecmetric[ppw->index_mt_psi] = y[ppw->pv->index_pt_phi] - (4.5 * (a2/k2) * ppw->rho_plus_p_shear + 4. * pba->K * y[ppw->pv->index_pt_blind_C]);
+		//QV: Is it 4.5 ?? ??
+		
       /* equation for phi' */
-      //here include C'
-      ppw->pvecmetric[ppw->index_mt_phi_prime] = -a_prime_over_a * ppw->pvecmetric[ppw->index_mt_psi] + 1.5 * (a2/k2) * ppw->rho_plus_p_theta;
-
+      // With C' from blind curvature
+	  ppw->pvecmetric[ppw->index_mt_phi_prime] = -a_prime_over_a * ppw->pvecmetric[ppw->index_mt_psi] + 1.5 * (a2/k2) * ppw->rho_plus_p_theta + pba->K * y[ppw->pv->index_pt_blind_C_prime];
+    
       /* eventually, infer radiation streaming approximation for
          gamma and ur (this is exactly the right place to do it
          because the result depends on h_prime) */
@@ -7623,7 +7656,7 @@ int perturbations_sources(
           _set_source_(ppt->index_tp_t1) = switch_isw * exp_m_kappa * exp_mu_idm_g * k* (pvecmetric[ppw->index_mt_psi]-y[ppw->pv->index_pt_phi]);
 
         }
-        else {
+        else {// (blind) Should I modify something here ?
           _set_source_(ppt->index_tp_t0) =
             ppt->switch_sw * g * (delta_g / 4. + pvecmetric[ppw->index_mt_psi])
             + switch_isw * ( g * (y[ppw->pv->index_pt_phi]-pvecmetric[ppw->index_mt_psi])
@@ -9432,19 +9465,21 @@ int perturbations_derivs(double tau,
         - (k2 + a2*pvecback[pba->index_bg_ddV_scf])*y[pv->index_pt_phi_scf]; //checked
 
     }
-    /** - ---> scalar field (scf) */
+    /** - ---> scalar field C from blind curvature  */
 
-    // if (pba->has_blind_curvature == _TRUE_) {
-    //   //with blind_curvature
-    //   /** - ----> field value */
-    //
-    //   dy[pv->index_pt_C] = y[pv->index_pt_C_prime];
-    //
-    //   /** - ----> Klein Gordon equation */
-    //
-    //   dy[pv->index_pt_C_prime_scf] =  - 2 * a_prime_over_a * y[pv->index_pt_C_prime] - k2 * pba //; //checked
-    //
-    // }
+	if (pba->has_blind_curvature == _TRUE_) {
+       
+       /** - ----> field value */
+    
+       dy[pv->index_pt_blind_C] = y[pv->index_pt_blind_C_prime];
+    
+       /** - ----> Wave equation */
+    
+       dy[pv->index_pt_blind_C_prime] =  - 2. * a_prime_over_a * y[pv->index_pt_blind_C_prime]
+       	- k2 * y[pv->index_pt_blind_C] - 0*a2/k2 * 4.5 * ppw->rho_plus_p_shear;
+    	//QV: Is it 4.5 ?? ??
+    
+	}
 
     /** - ---> ultra-relativistic neutrino/relics (ur) */
 
@@ -9674,7 +9709,7 @@ int perturbations_derivs(double tau,
 
     }
 
-    if (ppt->gauge == newtonian) {
+    if (ppt->gauge == newtonian) {// QV: So from what I understood, this is where phi' is calculated.
 
       dy[pv->index_pt_phi] = pvecmetric[ppw->index_mt_phi_prime];
 

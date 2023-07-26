@@ -486,6 +486,8 @@ struct perturbations_vector
   int index_pt_shear_idr; /**< shear of interacting dark radiation */
   int index_pt_l3_idr;    /**< l=3 of interacting dark radiation */
   int l_max_idr;          /**< max momentum in Boltzmann hierarchy (at least 3) for interacting dark radiation */
+  int index_pt_blind_C; /**< scalar field from reference curvature (blind curvature) */
+  int index_pt_blind_C_prime; /**< scalar field velocity from reference curvature (blind curvature) */
 
   /* perturbed recombination */
   int index_pt_perturbed_recombination_delta_temp;		/**< Gas temperature perturbation */
