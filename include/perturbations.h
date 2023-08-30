@@ -117,6 +117,9 @@ struct perturbations
   short has_nid;     /**< do we need isocurvature nid mode? */
   short has_niv;     /**< do we need isocurvature niv mode? */
 
+  short has_blind_curvature_perts; /**< VP: do we include blind curvature in perts? */
+
+
   /* perturbed recombination */
   /** Do we want to consider perturbed temperature and ionization fraction? */
   short has_perturbed_recombination;
@@ -174,8 +177,8 @@ struct perturbations
 
   double * alpha_idm_dr; /**< Angular contribution to collisional term at l>=2 for idm_fr-idr */
   double * beta_idr;  /**< Angular contribution to collisional term at l>=2 for idr-idr */
-  double DMDE_interaction; /** drag term between DM and DE */ 
-  double DMDE_interaction_pow; /** exponent of the drag term between DM and DE */ 
+  double DMDE_interaction; /** drag term between DM and DE */
+  double DMDE_interaction_pow; /** exponent of the drag term between DM and DE */
   int idr_nature; /**< Nature of the interacting dark radiation (free streaming or fluid) */
 
   //@}

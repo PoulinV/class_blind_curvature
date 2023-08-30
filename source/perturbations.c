@@ -4040,11 +4040,11 @@ int perturbations_vector_init(
 
     class_define_index(ppv->index_pt_phi_scf,pba->has_scf,index_pt,1); /* scalar field density */
     class_define_index(ppv->index_pt_phi_prime_scf,pba->has_scf,index_pt,1); /* scalar field velocity */
-    
+
 	/* scalar field from reference curvature (blind) */
 
-	class_define_index(ppv->index_pt_blind_C,pba->has_blind_curvature,index_pt,1); /* scalar field density */
-	   class_define_index(ppv->index_pt_blind_C_prime,pba->has_blind_curvature,index_pt,1); /* scalar field velocity */
+	class_define_index(ppv->index_pt_blind_C,ppt->has_blind_curvature_perts,index_pt,1); /* scalar field density */
+	  class_define_index(ppv->index_pt_blind_C_prime,ppt->has_blind_curvature_perts,index_pt,1); /* scalar field velocity */
 
     /* perturbed recombination: the indices are defined once tca is off. */
     if ( (ppt->has_perturbed_recombination == _TRUE_) && (ppw->approx[ppw->index_ap_tca] == (int)tca_off) ){
@@ -4518,8 +4518,8 @@ int perturbations_vector_init(
         ppv->y[ppv->index_pt_phi_prime_scf] =
           ppw->pv->y[ppw->pv->index_pt_phi_prime_scf];
       }
-      
-      if (pba->has_blind_curvature == _TRUE_) {
+
+      if (ppt->has_blind_curvature_perts == _TRUE_) {
 
         ppv->y[ppv->index_pt_blind_C] =
           ppw->pv->y[ppw->pv->index_pt_blind_C];
@@ -5589,14 +5589,14 @@ int perturbations_initial_conditions(struct precision * ppr,
         /* delta_fld expression * rho_scf with the w = 1/3, c_s = 1
            a*a/ppw->pvecback[pba->index_bg_phi_prime_scf]*( - ktau_two/4.*(1.+1./3.)*(4.-3.*1.)/(4.-6.*(1/3.)+3.*1.)*ppw->pvecback[pba->index_bg_rho_scf] - ppw->pvecback[pba->index_bg_dV_scf]*ppw->pv->y[ppw->pv->index_pt_phi_scf])* ppr->curvature_ini * s2_squared; */
       }
-      
-      if (pba->has_blind_curvature == _TRUE_) {
+
+      if (ppt->has_blind_curvature_perts == _TRUE_) {
         /*  As a first test, initial conditions are taken to be zero for C, which is sourced by the total shear.
          */
 
         ppw->pv->y[ppw->pv->index_pt_blind_C] = 0.;
         ppw->pv->y[ppw->pv->index_pt_blind_C_prime] = 0.;
-	
+
       }
 
       /* all relativistic relics: ur, early ncdm, dr */
@@ -5871,15 +5871,15 @@ int perturbations_initial_conditions(struct precision * ppr,
            -a*a* dV_scf(pba,ppw->pvecback[pba->index_bg_phi_scf])*alpha
            +ppw->pvecback[pba->index_bg_phi_prime_scf]*alpha_prime);
       }
-      
+
       /* scalar field blind curvature: check */
       // Is there something to do here ???
-      if (pba->has_blind_curvature == _TRUE_) {
-        
+      if (ppt->has_blind_curvature_perts == _TRUE_) {
+
       }
-      
-      
-      
+
+
+
 
       if ((pba->has_ur == _TRUE_) || (pba->has_ncdm == _TRUE_) || (pba->has_dr == _TRUE_)  || (pba->has_idr == _TRUE_)) {
 
@@ -6633,15 +6633,24 @@ int perturbations_einstein(
          y[ppw->pv->index_pt_phi], which derivative is given by the
          second equation below (credits to Guido Walter Pettinari). */
 
-      /* equation for psi */
-      // With C from blind curvature
-      ppw->pvecmetric[ppw->index_mt_psi] = y[ppw->pv->index_pt_phi] - (4.5 * (a2/k2) * ppw->rho_plus_p_shear + 4. * pba->K * y[ppw->pv->index_pt_blind_C]);
-		//QV: Is it 4.5 ?? ??
-		
-      /* equation for phi' */
-      // With C' from blind curvature
-	  ppw->pvecmetric[ppw->index_mt_phi_prime] = -a_prime_over_a * ppw->pvecmetric[ppw->index_mt_psi] + 1.5 * (a2/k2) * ppw->rho_plus_p_theta + pba->K * y[ppw->pv->index_pt_blind_C_prime];
-    
+
+      if(ppt->has_blind_curvature_perts == _TRUE_){
+        /* equation for psi */
+        // With C from blind curvature
+        ppw->pvecmetric[ppw->index_mt_psi] = y[ppw->pv->index_pt_phi] - (4.5 * (a2/k2) * ppw->rho_plus_p_shear + 4. * pba->K * y[ppw->pv->index_pt_blind_C]);
+        /* equation for phi' */
+        // With C' from blind curvature
+        ppw->pvecmetric[ppw->index_mt_phi_prime] = -a_prime_over_a * ppw->pvecmetric[ppw->index_mt_psi] + 1.5 * (a2/k2) * ppw->rho_plus_p_theta + pba->K * y[ppw->pv->index_pt_blind_C_prime];
+
+      }
+      else{
+        /* equation for psi */
+        ppw->pvecmetric[ppw->index_mt_psi] = y[ppw->pv->index_pt_phi] - (4.5 * (a2/k2) * ppw->rho_plus_p_shear);
+        /* equation for phi' */
+        ppw->pvecmetric[ppw->index_mt_phi_prime] = -a_prime_over_a * ppw->pvecmetric[ppw->index_mt_psi] + 1.5 * (a2/k2) * ppw->rho_plus_p_theta;
+      }
+
+
       /* eventually, infer radiation streaming approximation for
          gamma and ur (this is exactly the right place to do it
          because the result depends on h_prime) */
@@ -9268,9 +9277,9 @@ int perturbations_derivs(double tau,
 
         dy[pv->index_pt_delta_cdm] = -(y[pv->index_pt_theta_cdm]+metric_continuity); /* cdm density */
         // dy[pv->index_pt_theta_cdm] = - a_prime_over_a*y[pv->index_pt_theta_cdm] + metric_euler; /* cdm velocity */
-        dy[pv->index_pt_theta_cdm] = - a_prime_over_a*y[pv->index_pt_theta_cdm] + metric_euler
+        dy[pv->index_pt_theta_cdm] = - a_prime_over_a*y[pv->index_pt_theta_cdm] + metric_euler;
          // + ppt->DMDE_interaction*pow(ppw->pvecback[pba->index_bg_rho_fld]/(ppw->pvecback[pba->index_bg_rho_cdm]+ppw->pvecback[pba->index_bg_rho_b]+rho_ncdm_bg_tot+rho_ncdm_bg_tot+ppw->pvecback[pba->index_bg_rho_fld]),ppt->DMDE_interaction_pow)*(y[pv->index_pt_theta_fld]-y[pv->index_pt_theta_cdm]); /* cdm velocity */
-         + ppt->DMDE_interaction*a*pow(1/ppw->pvecback[pba->index_bg_rho_cdm],ppt->DMDE_interaction_pow)*(y[pv->index_pt_theta_fld]-y[pv->index_pt_theta_cdm]); /* cdm velocity */
+         // + ppt->DMDE_interaction*a*pow(1/ppw->pvecback[pba->index_bg_rho_cdm],ppt->DMDE_interaction_pow)*(y[pv->index_pt_theta_fld]-y[pv->index_pt_theta_cdm]); /* cdm velocity */
         // dy[pv->index_pt_theta_cdm] = - a_prime_over_a*y[pv->index_pt_theta_cdm] + metric_euler + ppt->DMDE_interaction*ppw->pvecback[pba->index_bg_rho_fld]/(ppw->pvecback[pba->index_bg_rho_cdm]+ppw->pvecback[pba->index_bg_rho_b]+ppw->pvecback[pba->index_bg_rho_fld])*(y[pv->index_pt_theta_fld]-y[pv->index_pt_theta_cdm]); /* cdm velocity */
         // printf("%e\n",pvecback[pba->index_bg_rho_crit]);
       }
@@ -9433,7 +9442,7 @@ int perturbations_derivs(double tau,
           +cs2*k2/(1.+w_fld)*y[pv->index_pt_delta_fld]
          // -ppt->DMDE_interaction*ppw->pvecback[pba->index_bg_rho_fld]/(ppw->pvecback[pba->index_bg_rho_cdm]+ppw->pvecback[pba->index_bg_rho_b]+ppw->pvecback[pba->index_bg_rho_fld])*(y[pv->index_pt_theta_fld]-y[pv->index_pt_theta_cdm]) /* cdm velocity */
          // -ppt->DMDE_interaction*pow(ppw->pvecback[pba->index_bg_rho_fld]/(ppw->pvecback[pba->index_bg_rho_cdm]+ppw->pvecback[pba->index_bg_rho_b]+ppw->pvecback[pba->index_bg_rho_fld]),ppt->DMDE_interaction_pow)*(y[pv->index_pt_theta_fld]-y[pv->index_pt_theta_cdm]); /* cdm velocity */
-         -ppt->DMDE_interaction*a*pow(1/ppw->pvecback[pba->index_bg_rho_cdm],ppt->DMDE_interaction_pow)*(ppw->pvecback[pba->index_bg_rho_cdm]/((1+w_fld)*ppw->pvecback[pba->index_bg_rho_fld]))*(y[pv->index_pt_theta_fld]-y[pv->index_pt_theta_cdm]); /* cdm velocity */
+         // -ppt->DMDE_interaction*a*pow(1/ppw->pvecback[pba->index_bg_rho_cdm],ppt->DMDE_interaction_pow)*(ppw->pvecback[pba->index_bg_rho_cdm]/((1+w_fld)*ppw->pvecback[pba->index_bg_rho_fld]))*(y[pv->index_pt_theta_fld]-y[pv->index_pt_theta_cdm]); /* cdm velocity */
 
 
           // -ppt->DMDE_interaction*ppw->pvecback[pba->index_bg_rho_fld]/(ppw->pvecback[pba->index_bg_rho_cdm]+ppw->pvecback[pba->index_bg_rho_b]+ppw->pvecback[pba->index_bg_rho_fld])*(y[pv->index_pt_theta_fld]-y[pv->index_pt_theta_cdm])
@@ -9467,18 +9476,18 @@ int perturbations_derivs(double tau,
     }
     /** - ---> scalar field C from blind curvature  */
 
-	if (pba->has_blind_curvature == _TRUE_) {
-       
+	if (ppt->has_blind_curvature_perts == _TRUE_) {
+
        /** - ----> field value */
-    
+
        dy[pv->index_pt_blind_C] = y[pv->index_pt_blind_C_prime];
-    
+
        /** - ----> Wave equation */
-    
+
        dy[pv->index_pt_blind_C_prime] =  - 2. * a_prime_over_a * y[pv->index_pt_blind_C_prime]
-       	- k2 * y[pv->index_pt_blind_C] - 0*a2/k2 * 4.5 * ppw->rho_plus_p_shear;
+       	- k2 * y[pv->index_pt_blind_C] - a2/k2 * 4.5 * ppw->rho_plus_p_shear;
     	//QV: Is it 4.5 ?? ??
-    
+
 	}
 
     /** - ---> ultra-relativistic neutrino/relics (ur) */

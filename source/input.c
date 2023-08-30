@@ -2677,12 +2677,25 @@ int input_read_parameters_species(struct file_content * pfc,
   if (flag1 == _TRUE_){
     if (string_begins_with(string1,'y') || string_begins_with(string1,'Y')){
       pba->has_blind_curvature = _TRUE_;
+
     }
     else {
       pba->has_blind_curvature = _FALSE_;
     }
   }
 
+  class_call(parser_read_string(pfc,"has_blind_curvature_perts",&string1,&flag1,errmsg),
+             errmsg,
+             errmsg);
+  if (flag1 == _TRUE_){
+    if (string_begins_with(string1,'y') || string_begins_with(string1,'Y')){
+      ppt->has_blind_curvature_perts = _TRUE_;
+
+    }
+    else {
+      ppt->has_blind_curvature_perts = _FALSE_;
+    }
+  }
   /* 7) ** ADDITIONAL SPECIES ** --> Add your species here */
 
   /** 7.1) Decaying DM into DR */
@@ -5738,6 +5751,7 @@ int input_default_params(struct background *pba,
   pba->K = 0.;
   pba->sgnK = 0;
   pba->has_blind_curvature = _FALSE_;
+  ppt->has_blind_curvature_perts = _FALSE_;
 
   /* ** ADDITIONAL SPECIES ** */
 
